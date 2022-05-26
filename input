@@ -1,0 +1,61 @@
+
+
+
+settings {
+  title: "2 fuel pins"
+  pop { 10000, 200, 100 } // 10000 histories 200 active generations 100 active generations
+  bc: vacuum
+
+}
+
+
+geometry {
+  // first pin  
+  surf pin1 cylz {-5.0, 0.0, 1, -10, 10}
+
+  // second pin
+  surf pin2 cylz {5, 0, 2, -10, 10}
+
+  // cube to hold everything
+  surf outer_wall rec_prism {-10, 10, -5, 5, -15, 15}
+
+  cell pin1 {
+    mat: uo2
+    surfs: -pin1
+  }
+
+  cell pin2 {
+      mat: uo2
+      surfs: -pin2
+  }
+
+  cell water {
+    mat: water
+    surfs {
+      pin1, pin2,
+      -outer_wall
+    }
+  }
+}
+
+materials {
+  water {
+    dens: 1.0
+    iso {
+        1001.06c: 2, // Hydrogen
+        8016.06c: 1, // Oxygen
+    }
+    color { 100, 100, 255 } // Blue
+  }
+
+  uo2 {
+    dens: 19.2 // g/cm3
+    iso {
+        92235.09c:  -0.015867 // U235
+        92238.09c:  -0.86563  // U238
+         8016.09c:  -0.1185   // O16
+    }
+    color { 0, 255, 0} // Green
+  }
+}
+
