@@ -39,10 +39,13 @@ fn main() {
 
     let path1 = String::from("/home/jarod/Projects/JMCP/xs/Lib80x/Lib80x/U/92235.800nc");
     let m = Isotope::new(path1).unwrap();
+    let a0 = m.abs_xs(1.0).unwrap();
+    let e0 = m.elastic_xs(1.0).unwrap();
 
-    println!("{}\n{}\n{}\n{}", m.xxs[0], m.xxs[1], m.xxs[2], m.xxs[3]);
+    let a1 = m.abs_xs(0.0253e-6).unwrap();
+    let e1 = m.elastic_xs(0.0253e-6).unwrap();
 
-
+    println!("@    1MeV => a:{} e:{}\n@0.0253eV => a:{} e:{}", a0, e0, a1, e1);
 
 
 }
