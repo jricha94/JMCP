@@ -1,5 +1,4 @@
 pub mod transport;
-
 use crate::transport::Pos;
 use crate::transport::neutron::*; //Neutron;
 // use crate::transport::geometry::*;
@@ -36,16 +35,27 @@ fn main() {
 
     // print!("{:?}\n", p.dist_to_surf(n));
 
-
     let path1 = String::from("/home/jarod/Projects/JMCP/xs/Lib80x/Lib80x/U/92235.800nc");
-    let m = Isotope::new(path1).unwrap();
-    let a0 = m.abs_xs(1.0).unwrap();
-    let e0 = m.elastic_xs(1.0).unwrap();
+    let path2 = String::from("/home/jarod/Projects/JMCP/xs/Lib80x/Lib80x/H/1001.800nc");
 
-    let a1 = m.abs_xs(0.0253e-6).unwrap();
-    let e1 = m.elastic_xs(0.0253e-6).unwrap();
+    let h1 = Isotope::new(path2).unwrap();
+    // println!("{}", h1.nu(1.0).unwrap_or_default());
 
-    println!("@    1MeV => a:{} e:{}\n@0.0253eV => a:{} e:{}", a0, e0, a1, e1);
+    let u235 = Isotope::new(path1).unwrap();
+    // for i in 1..15 {
+    //     println!("nu: {}", u235.nu(i as f64).unwrap());
+    // }
+
+    // println!("{:?}", u235.q_value(5).unwrap());
+
+    for mt in u235.mt_numbers.iter() {
+        // println!("q: {}, n: {}", u235.q_value(*mt).unwrap(), u235.n_release(*mt).unwrap())
+        println!("loc: {}", u235.mt_xs(*mt, 1.0).unwrap());
+    }
+
+
+
+
 
 
 }

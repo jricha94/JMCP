@@ -10,7 +10,8 @@ pub struct Isotope {
     izaw: [(u32, f64); 16],
     nxs: [u32; 16],
     jxs: [u32; 32],
-    pub xxs: Vec<f64>,
+    xxs: Vec<f64>,
+    pub mt_numbers: Vec<u32>,
 }
 
 impl fmt::Display for Isotope {
@@ -32,6 +33,7 @@ impl Isotope {
         let mut nxs: [u32; 16] = [0; 16];
         let mut jxs: [u32; 32] = [0; 32];
         let mut xxs: Vec<f64> = Vec::new();
+        let mut mt_numbers: Vec<u32> = Vec::new();
 
         for (i, line) in f.lines().enumerate() {
             match i {
@@ -88,6 +90,12 @@ impl Isotope {
         let szaid = szaid.unwrap();
         let mat = mat.unwrap();
 
+        let mt_index: usize = (jxs[2] - 1) as usize;
+        let n_mt: usize = (nxs[3] - 1) as usize;
+        for i in (mt_index)..(mt_index + n_mt) {
+            mt_numbers.push(xxs[i] as u32);
+        }
+
         Ok(Self {
             szaid,
             mat,
@@ -95,20 +103,18 @@ impl Isotope {
             nxs,
             jxs,
             xxs,
+            mt_numbers,
         })
     }
 
-    pub fn total_xs(&self, energy:f64) -> Option<f64> {
-
+    pub fn total_xs(&self, energy: f64) -> Option<f64> {
         let xxs_index = (self.jxs[0] - 1) as usize;
         let ene_pts = self.nxs[2] as usize;
 
         for i in xxs_index..(xxs_index + ene_pts) {
             if self.xxs[i] == energy {
-                return Some(self.xxs[xxs_index + ene_pts + i])
-            }
-
-            else if self.xxs[i] < energy && self.xxs[i + 1] > energy {
+                return Some(self.xxs[xxs_index + ene_pts + i]);
+            } else if self.xxs[i] < energy && self.xxs[i + 1] > energy {
                 return Some(self.xxs[xxs_index + ene_pts + i]);
             }
         }
@@ -116,17 +122,14 @@ impl Isotope {
         None
     }
 
-    pub fn abs_xs(&self, energy:f64) -> Option<f64> {
-
+    pub fn dis_xs(&self, energy: f64) -> Option<f64> {
         let xxs_index = (self.jxs[0] - 1) as usize;
         let ene_pts = self.nxs[2] as usize;
 
         for i in xxs_index..(xxs_index + ene_pts) {
             if self.xxs[i] == energy {
-                return Some(self.xxs[xxs_index + ene_pts * 2 + i])
-            }
-
-            else if self.xxs[i] < energy && self.xxs[i + 1] > energy {
+                return Some(self.xxs[xxs_index + ene_pts * 2 + i]);
+            } else if self.xxs[i] < energy && self.xxs[i + 1] > energy {
                 return Some(self.xxs[xxs_index + ene_pts * 2 + i]);
             }
         }
@@ -134,22 +137,123 @@ impl Isotope {
         None
     }
 
-    pub fn elastic_xs(&self, energy:f64) -> Option<f64> {
-
+    pub fn elastic_xs(&self, energy: f64) -> Option<f64> {
         let xxs_index = (self.jxs[0] - 1) as usize;
         let ene_pts = self.nxs[2] as usize;
 
         for i in xxs_index..(xxs_index + ene_pts) {
             if self.xxs[i] == energy {
-                return Some(self.xxs[xxs_index + ene_pts * 3 + i])
-            }
-
-            else if self.xxs[i] < energy && self.xxs[i + 1] > energy {
+                return Some(self.xxs[xxs_index + ene_pts * 3 + i]);
+            } else if self.xxs[i] < energy && self.xxs[i + 1] > energy {
                 return Some(self.xxs[xxs_index + ene_pts * 3 + i]);
             }
         }
 
         None
+    }
+
+    pub fn avg_heating(&self, energy: f64) -> Option<f64> {
+        let xxs_index = (self.jxs[0] - 1) as usize;
+        let ene_pts = self.nxs[2] as usize;
+
+        for i in xxs_index..(xxs_index + ene_pts) {
+            if self.xxs[i] == energy {
+                return Some(self.xxs[xxs_index + ene_pts * 4 + i]);
+            } else if self.xxs[i] < energy && self.xxs[i + 1] > energy {
+                return Some(self.xxs[xxs_index + ene_pts * 4 + i]);
+            }
+        }
+
+        None
+    }
+
+    pub fn nu(&self, energy: f64) -> Option<f64> {
+        if self.jxs[1] == 0 {
+            // No nu values
+            return None;
+        } else if self.jxs[1] > 0 {
+            // Prompt or total nu given (but not both)
+            let nu_index = self.jxs[1] as usize;
+            match self.xxs[nu_index] as u8 {
+                1 => {
+                    return None;
+                }
+                2 => {
+                    let regions = self.xxs[nu_index + 1] as usize;
+                    if regions > 0 {
+                        let mut interp_params: Vec<f64> = Vec::new();
+                        let mut interp_scheme: Vec<f64> = Vec::new();
+                        for i in (nu_index + 2)..(nu_index + 2 + regions) {
+                            interp_params.push(self.xxs[i]);
+                        }
+                        for i in (nu_index + 2 + regions)..(nu_index + 2 + 2 * regions) {
+                            interp_scheme.push(self.xxs[i]);
+                        }
+                    }
+
+                    let ene_pts = self.xxs[nu_index + 2 + (2 * regions)] as usize;
+
+                    for i in
+                        (nu_index + 3 + (2 * regions))..(nu_index + 3 + (2 * regions) + ene_pts)
+                    {
+                        if self.xxs[i] == energy {
+                            return Some(self.xxs[ene_pts + i]);
+                        } else if self.xxs[i] < energy && self.xxs[i + 1] > energy {
+                            return Some(self.xxs[ene_pts + i]);
+                        }
+                    }
+                }
+                _ => {
+                    return None;
+                }
+            }
+
+            return None;
+        } else {
+            return None;
+        }
+    }
+
+    // pub fn delayed_nu(&self, energy: f64) -> Option<f64> {
+
+    pub fn q_value(&self, mt: u32) -> Option<f64> {
+        let q_index: usize = (self.jxs[3] - 1) as usize;
+
+        for (i, num) in self.mt_numbers.iter().enumerate() {
+            if *num == mt {
+                return Some(self.xxs[q_index + i]);
+            }
+        }
+
+        None
+    }
+
+    pub fn n_release(&self, mt: u32) -> Option<i32> {
+        let q_index: usize = (self.jxs[4] - 1) as usize;
+
+        for (i, num) in self.mt_numbers.iter().enumerate() {
+            if *num == mt {
+                return Some(self.xxs[q_index + i] as i32);
+            }
+        }
+
+        None
+
+    }
+
+    pub fn mt_xs(&self, mt: u32, e: f64) -> Option<f64> {
+        let lsig_index: usize = (self.jxs[5] - 1) as usize;
+
+        for (i, num) in self.mt_numbers.iter().enumerate() {
+            if *num == mt {
+                let location: usize = self.xxs[lsig_index + i] as usize;
+                println!("{}", location);
+            }
+        }
+
+        Some(7.0)
+
+
     }
 }
 
