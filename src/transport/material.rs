@@ -238,7 +238,6 @@ impl Isotope {
         }
 
         None
-
     }
 
     pub fn mt_xs(&self, mt: u32, e: f64) -> Option<f64> {
@@ -252,8 +251,6 @@ impl Isotope {
         }
 
         Some(7.0)
-
-
     }
 }
 

@@ -1,14 +1,11 @@
 pub mod transport;
-use crate::transport::Pos;
-use crate::transport::neutron::*; //Neutron;
-// use crate::transport::geometry::*;
-use crate::transport::surfaces::*;
+use crate::transport::neutron::*;
+use crate::transport::Pos; //Neutron;
+                           // use crate::transport::geometry::*;
 use crate::transport::material::*;
-
-
+use crate::transport::surfaces::*;
 
 fn main() {
-
     // let mut mu:Vec<f64> = Vec::new();
     // let mut theta:Vec<f64> = Vec::new();
     // let mut tau:Vec<f64> = Vec::new();
@@ -25,7 +22,6 @@ fn main() {
     //     mu.iter().sum::<f64>() as f64 / mu.len() as f64,
     //     theta.iter().sum::<f64>() as f64 / theta.len() as f64,
     //     tau.iter().sum::<f64>() as f64 / tau.len() as f64);
-
 
     // let p = Plane::new(String::from("This"), 1f64, 0f64, 0f64, -5f64);
     // let pos = Pos::new(0f64, 0f64, 0f64);
@@ -52,10 +48,4 @@ fn main() {
         // println!("q: {}, n: {}", u235.q_value(*mt).unwrap(), u235.n_release(*mt).unwrap())
         println!("loc: {}", u235.mt_xs(*mt, 1.0).unwrap());
     }
-
-
-
-
-
-
 }
